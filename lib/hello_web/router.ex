@@ -12,6 +12,9 @@ defmodule HelloWeb.Router do
   pipeline :api do
     plug :accepts, ["json"]
   end
+  pipeline :graphql do
+    plug Graphql.Context
+  end
 
   scope "/", HelloWeb do
     pipe_through :browser
@@ -19,10 +22,13 @@ defmodule HelloWeb.Router do
     get "/", PageController, :index
     get "/hello", HelloController, :index
     get "/hello/:messenger", HelloController, :show
+    #get "/", RootController, :index
+    # resources "/users", UserController, only: [:index, :show] #for all http verbose actions get post delete etc
   end
-
+  #forward "/jobs", BackgroundJob.Plug for sending request to a particular PLUG
   # Other scopes may use custom stacks.
-  # scope "/api", HelloWeb do
-  #   pipe_through :api
-  # end
+  scope "/api", HelloWeb do
+     pipe_through :graphql
+     forward "/graphiql", Absinthe.Plug.GraphiQL, schema: HelloWeb.Schema
+   end
 end
